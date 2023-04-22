@@ -1,5 +1,7 @@
 from twitchio.ext import commands
 import os
+import dotenv
+
 
 class TwitchClient(commands.Bot):
     def __init__(self):
@@ -10,7 +12,7 @@ class TwitchClient(commands.Bot):
             token=os.environ['TWITCH_TOKEN'],
             prefix=os.environ['TWITCH_PREFIX'],
             initial_channels=[os.environ['TWITCH_CHANNEL']],
-            nick=os.environ['TWITCH_BOT_NICK']     
+            nick=os.environ['TWITCH_BOT_NICK']
         )
 
     async def event_ready(self):
@@ -23,7 +25,6 @@ class TwitchClient(commands.Bot):
         # For now we just want to ignore them...
         if message.echo:
             return
-        
 
         # Print the contents of our message to console...
         print(message.content)
@@ -31,13 +32,14 @@ class TwitchClient(commands.Bot):
         # Since we have commands and are overriding the default `event_message`
         # We must let the bot know we want to handle and invoke our commands...
         await self.handle_commands(message)
-        
 
+
+dotenv.load_dotenv()
 tc = TwitchClient()
 
 
-#region Twitch Commands
+# region Twitch Commands
 @tc.command(name='test')
 async def test(ctx):
     await ctx.send('test passed!')
-#endregion
+# endregion

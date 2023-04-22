@@ -1,13 +1,15 @@
+import asyncio
 import os
 import threading
+import dotenv
 from threading import Thread
 from twitchClient import tc as TwitchClient
-from discordClient import dc as DiscordClient
+from discordClient import bot as DiscordClient
 
 
 def threaded(fn):
     def wrapper(*args, **kwargs):
-        thread = threading.Thread(target=fn, args=args, kwargs=kwargs)
+        thread = threading.Thread(target=fn, args=args, kwargs=kwargs, daemon=True)
         thread.start()
         return thread
     return wrapper
@@ -22,21 +24,30 @@ class Bot():
         self.tc.run()
     @threaded
     def startDiscord(self):
-        self.dc.start()
+        asyncio.run(self.dc.start(os.environ['DISCORD_TOKEN']))
 
     tThread = None
     dThread = None
 
     def start(self):
         self.tThread = self.startTwitch()
-        self.dThread = self.startDiscord()
+        asyncio.run(self.dc.start(os.environ['DISCORD_TOKEN']))
 
-
+    async def stop(self):
+        await asyncio.wait_for(self.dc.close(), 5)
+        print('Discord - Disconnected')
+        print('Twitch - Disconnected')
 
 
 bot = Bot()
 
 if __name__ == "__main__":
-    bot.start()
-    while(True):
-        continue
+    try:
+        dotenv.load_dotenv()
+        bot.start()
+        while True:
+            continue
+    except KeyboardInterrupt:
+        print('Shutting down...')
+        asyncio.run(bot.stop())
+        pass
