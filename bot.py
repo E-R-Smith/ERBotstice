@@ -5,6 +5,7 @@ import dotenv
 from threading import Thread
 from twitchClient import tc as TwitchClient
 from discordClient import bot as DiscordClient
+from discordClient import relay
 
 
 def threaded(fn):
@@ -15,22 +16,21 @@ def threaded(fn):
     return wrapper
 
 
-class Bot():
+class Bot:
     tc = TwitchClient
     dc = DiscordClient
+    tc.twitchEvents.on_msgRX += relay
     
     @threaded
-    def startTwitch(self):
+    def start_twitch(self):
         self.tc.run()
-    @threaded
-    def startDiscord(self):
-        asyncio.run(self.dc.start(os.environ['DISCORD_TOKEN']))
 
     tThread = None
     dThread = None
 
     def start(self):
-        self.tThread = self.startTwitch()
+        print(f"Starting...")
+        self.tThread = self.start_twitch()
         asyncio.run(self.dc.start(os.environ['DISCORD_TOKEN']))
 
     async def stop(self):
